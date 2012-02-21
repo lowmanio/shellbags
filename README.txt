@@ -74,3 +74,10 @@ Sources
 5) "Windows Shell Item format specification" by Joachim Metz, which
    may be accessed at http://download.polytechnic.edu.na/pub4/download.sourceforge.net/pub/sourceforge/l/project/li/liblnk/Documentation/Windows%20Shell%20Item%20format/Windows%20Shell%20Item%20format.pdf
    
+21-FEB-2012 Sarah Lowman
+------------------------
+
+    * Script now makes a csv file named shellbags_output.csv in same directory as script
+    * This can be used in Excel for analysis
+    * Timestamps have been converted to one Excel can understand
+    * Only outputs path and timestamps and not the 0's
