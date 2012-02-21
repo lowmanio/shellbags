@@ -16,6 +16,10 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
+#
+#   Sarah Lowman's additions [Feb 2012]:
+#   Automatically created a CSV file named shellbags_output.csv that Excel 
+#   can use. Changed Unix Epoch times to Excel timestamps.
 
 import re, sys, datetime, time
 import struct
@@ -94,16 +98,15 @@ def error(message):
 
 def date_safe(d):
     """
-    From a Python datetime object, return a corresponding Unix timestamp
-    or the epoch timestamp if the datetime object doesn't make sense
+    From a Python datetime object, return a string datetime that Excel will handle.
     Arguments:
     - `d`: A Python datetime object
     Throws:
     """
     try:
-        return int(time.mktime(d.timetuple()))
+        return d.strftime("%d/%m/%Y %H:%M:%S")
     except ValueError:
-        return int(time.mktime(datetime.datetime(1970, 1, 1, 0, 0, 0).timetuple()))
+       return int(time.mktime(datetime.datetime(1970, 1, 1, 0, 0, 0).timetuple()))
 
 ################ CLASS DEFINITIONS #############v
 
@@ -1167,9 +1170,7 @@ def shellbag_bodyfile(m, a, cr, path):
     modified = date_safe(m)
     accessed = date_safe(a)
     created = date_safe(cr)
-    changed = int(time.mktime(datetime.datetime(1970, 1, 1, 0, 0, 0).timetuple()))
-    return u"0|%s (Shellbag)|0|0|0|0|0|%s|%s|%s|%s" % \
-      (path, modified, accessed, changed, created)
+    return u'"{}",{},{},{}'.format(path, modified, accessed, created)
 
 ################ MAIN  #############
 
@@ -1190,14 +1191,12 @@ if __name__ == '__main__':
         from colorama import init, Fore
         init()
 
-    for f in args.file:
-        registry = Registry.Registry(f)
-
-        for shellbag in get_all_shellbags(registry):
-            try:
-                print shellbag_bodyfile(shellbag["mtime"], 
-                                        shellbag["atime"], 
-                                        shellbag["crtime"], 
-                                        shellbag["path"])
-            except UnicodeEncodeError:
-                warning("Failed printing path: " + str(list(shellbag["path"])))
+    with open('shellbags_output.csv','w') as output:
+        output.write("Path, Modified Date, Accessed Date, Created Date\n")
+        for f in args.file:
+            registry = Registry.Registry(f)
+            for shellbag in get_all_shellbags(registry):
+                try:
+                    output.write(shellbag_bodyfile(shellbag["mtime"], shellbag["atime"], shellbag["crtime"], shellbag["path"])+"\n")
+                except UnicodeEncodeError:
+                    warning("Failed writing path: " + str(list(shellbag["path"])))
